@@ -1,0 +1,24 @@
+flask
+werkzeug
+gunicorn
+
+# Telegram Bots
+pyTelegramBotAPI
+aiogram
+python-telegram-bot
+telethon
+pyrogram
+
+# WhatsApp Bots (Neonize)
+neonize
+
+# Utilities (Downloaders, APIs)
+requests
+beautifulsoup4
+lxml
+pillow
+yt-dlp
+psutil
+python-dotenv
+sqlalchemy
+pymongo
