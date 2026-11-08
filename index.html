@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Yeakub Cloud</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; margin: 0;}
+        .container { max-width: 1200px; margin: auto; display: flex; gap: 20px; flex-wrap: wrap; }
+        .panel { background: #1e293b; padding: 20px; border-radius: 10px; flex: 1; min-width: 350px; }
+        h2 { color: #38bdf8; font-size: 18px; }
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; background: #0f172a; border: 1px solid #334155; color: #e2e8f0; border-radius: 5px; font-family: monospace; box-sizing: border-box;}
+        .code-editor { height: 350px; }
+        .terminal { background: black; color: #10b981; padding: 10px; border-radius: 5px; height: 350px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; font-size: 13px; border: 1px solid #334155;}
+        button { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 5px;}
+        .stop-btn { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center; color:#38bdf8;">🚀 Yeakub Cloud Platform</h1>
+    <p style="text-align:center; color:#94a3b8;">All libraries pre-installed. Just paste your code and run.</p>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>1. Paste Your Bot Code (main.py)</h2>
+            <input type="text" id="botName" placeholder="Bot Name (e.g. my_tg_bot)" required>
+            <textarea id="botCode" class="code-editor" placeholder="# Paste Telegram or WhatsApp bot code here..."></textarea>
+            <button onclick="runBot()">▶ Deploy & Run Bot</button>
+        </div>
+
+        <div class="panel">
+            <h2>2. Live Terminal</h2>
+            <div id="terminal" class="terminal">Waiting to start...</div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button onclick="stopBot()" class="stop-btn">🛑 Stop Bot</button>
+                <button onclick="clearTerminal()" style="background:#475569;">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let logInterval = null;
+
+        async function runBot() {
+            const botName = document.getElementById('botName').value;
+            const botCode = document.getElementById('botCode').value;
+            const terminal = document.getElementById('terminal');
+
+            if (!botName || !botCode) return alert("Enter Bot Name & Code!");
+
+            terminal.innerHTML = "⏳ Starting bot...\n";
+
+            try {
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bot_name: botName, code: botCode })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    terminal.innerHTML += `✅ ${data.message}\n`;
+                    startLogs(botName);
+                } else {
+                    terminal.innerHTML += `❌ Error: ${data.error}\n`;
+                }
+            } catch (err) {
+                terminal.innerHTML += `❌ Network Error\n`;
+            }
+        }
+
+        function startLogs(botName) {
+            if (logInterval) clearInterval(logInterval);
+            const terminal = document.getElementById('terminal');
+
+            logInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/logs/${botName}`);
+                    const data = await res.json();
+                    terminal.innerHTML = data.logs;
+                    terminal.scrollTop = terminal.scrollHeight;
+                } catch (e) {}
+            }, 2000);
+        }
+
+        async function stopBot() {
+            const botName = document.getElementById('botName').value;
+            clearInterval(logInterval);
+            const terminal = document.getElementById('terminal');
+
+            try {
+                await fetch('/api/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bot_name: botName })
+                });
+                terminal.innerHTML += `\n🛑 Bot Stopped.\n`;
+            } catch (err) {}
+        }
+
+        function clearTerminal() { document.getElementById('terminal').innerHTML = ""; }
+    </script>
+</body>
+</html>
