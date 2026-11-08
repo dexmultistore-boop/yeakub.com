@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 import threading
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -19,9 +19,10 @@ def stream_logs(bot_name, process):
         if len(bot_logs[bot_name]) > 50000:
             bot_logs[bot_name] = bot_logs[bot_name][-50000:]
 
+# ⚡ এখানে পরিবর্তন করা হয়েছে: এখন এটি মেইন ফোল্ডার থেকে index.html লোড করবে
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return send_from_directory('.', 'index.html')
 
 @app.route('/api/run', methods=['POST'])
 def run_bot():
